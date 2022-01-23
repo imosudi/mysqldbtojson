@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 from sqlalchemy import create_engine, inspect
 import json
-import requests
 import decimal, datetime
 
 # database login var
@@ -32,7 +31,7 @@ try:
             dbhost=dbhost,
             db=dbname))
 except :
-    print('database connection erroe')
+    print('database connection error')
     pass
 
 
