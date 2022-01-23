@@ -30,7 +30,6 @@ class MysqltoJSON(object):
             dataList = [row for row in dbtableData]
             #dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
             print(dataList)
-            #break
         return dataList
         
 
