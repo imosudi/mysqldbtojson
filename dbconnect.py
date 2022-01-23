@@ -24,16 +24,16 @@ dbuser	= os.environ.get("DB_USER")
 pw	= os.environ.get("DB_PASS")
 
 # create sqlalchemy engine
-try:
-    engine = create_engine("mysql+pymysql://{dbuser}:{pw}@{dbhost}/{db}" 
+#try:
+engine = create_engine("mysql+pymysql://{dbuser}:{pw}@{dbhost}/{db}" 
      .format(dbuser=dbuser, 
             pw=pw, 
             dbhost=dbhost,
             db=dbname))
-except :
+'''except :
     print('database connection error')
     pass
-
+'''
 
 def alchemyencoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
