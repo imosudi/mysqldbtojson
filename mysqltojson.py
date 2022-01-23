@@ -1,6 +1,38 @@
 from dbconnect import engine, alchemyencoder
 import json
+from sqlalchemy import inspect
 
+class MysqltoJSON(object):
+    def __init__(self, engine, *args):
+        super(MysqltoJSON, self).__init__(*args)
+        self.engine = engine
+        inspector = inspect(engine)
+        self.inspector = inspector
+    
+    def tableData(self):
+        tableList = []
+        inspector = self.inspector
+        for table_name in inspector.get_table_names():
+            tableList.append(table_name)
+        
+        tablesDict = dict(dbtables = tableList) 
+        tablesjson = json.dumps(tablesDict, indent=2)
+        #print(tableList, tablesjson)
+        return tableList, tablesjson
+    
+    def createDBTableJSON(self):
+        tableList, tablesjson = self.tableData()
+        #print(tableList, tablesjson)
+        
+        for dbtable in tableList :
+            engine = self.engine
+            dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
+            dataList = [row for row in dbtableData]
+            #dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
+            print(dataList)
+            #break
+        return dataList
+        
 
 class flatToCascadedJson(object):
     def __init__(self, dbtable, *args):
