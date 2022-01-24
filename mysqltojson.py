@@ -17,59 +17,68 @@ class MysqltoJSON(object):
     
     def tableData(self):
         tableList = []
+        totalschemaList = []
         inspector = self.inspector
         dbname = self.dbname
-        for table_name in inspector.get_table_names():
-            tableList.append(table_name)
-        #tablesDict = dict(dbname = tableList) #dbtables 
         tablesDict                  = {}
         tablesDict['database']      = dbname
         tablesDict['drivername']    = engine.url.drivername       
         tablesDict['host']          = engine.url.host
         tablesDict['password']      = engine.url.password
-        tablesDict['tables']        = tableList
-        databaseschemajson          = json.dumps(tablesDict, default=alchemyencoder, indent=2)
-        #print(tableList)
-        #print(databaseschemajson)
-        
-        
-        with open('columnsAll.json', 'w+') as file:
-            for dbtable in tableList:
-                columnList = []
-            
-                for column in inspector.get_columns(dbtable):
-                    columnList.append(column['name'])
-                #columnDict = dict( table_name = columnList)
-                    columnsAll = json.dumps(
-                            {
-                                'table' : dbtable,
-                                'columns': columnList
-                            }, indent=2
-                    )
-                columnDict              = {}
-                columnDict['table']     = dbtable
+        for table_name in inspector.get_table_names():
+            tableList.append(table_name)
+            #print(table_name)
+            columnList =[]
+            columnDict             = {}
+            columnDict['name']     =  table_name
+            for column in inspector.get_columns(table_name):
+                columnList.append(column['name'])
                 columnDict['columns']   =  columnList
-                tablecolumnsjson = json.dumps(columnDict, default=alchemyencoder, indent=2)
-                #print(columnsAll)
-                file.write(columnsAll) 
-                #print(tablecolumnsjson)
-        file.close()
+            
+            totalschemaList.append(columnDict)
+            ##print(columnDict)
+        #print(tableList)    
+        #tablesDict = dict(dbname = tableList) #dbtables 
+        
+        tablesDict['tables']        = totalschemaList
+        databaseschemajson          = json.dumps(tablesDict, default=alchemyencoder, indent=2)
         #print(tableList, tablesjson)
-        #print(tablecolumnsjson)
-        print()
-        return tableList, databaseschemajson,columnsAll
+        return tableList, databaseschemajson, totalschemaList 
     
     def createDBTableJSON(self):
-        tableList, tablesjson = self.tableData()
+        engine = self.engine
+        tableList, tablesjson, totalschemaList = self.tableData()
         #print(tableList, tablesjson)
-        
+        dbdataListAll = []
+        dbdataDictAll = {}
+        dbdataDict = {}
+        dbblankList = []
         for dbtable in tableList :
-            engine = self.engine
             dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
-            dataList = [row for row in dbtableData]
+            dbdataList = [row for row in dbtableData]
+            for row in dbdataList :
+                #print( { dbtable : dict(row) }, 
+                #      '\n')
+                #print( dict(row))
+                dbblankList.append(
+                    dict(row)
+                     )            
+            dbdataDict[dbtable] = dbdataList
+            dbdataListAll.append(dbdataDict)
+            #dbtableName = dbtable,
+            #dbtableNameList = [dbtableName]
+            #dbdataListAll = dbdataListAll + dataList #dbtableNameList #+ dataList
+            #print(json.dumps([dict(row) for row in dataList], default=alchemyencoder, indent=2))
+        
+        print(json.dumps(dbblankList, default=alchemyencoder, indent=2))
+        dbdataDictAll['all'] = dbdataListAll
+        #dbdatajson = json.dumps([dict(row) for row in dbdataListAll], default=alchemyencoder, indent=2)
+        dbdatajson = json.dumps(dbdataDictAll, default=alchemyencoder, indent=2)
+        #print(dbdatajson)
+        
             #dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
             #print(dataList)
-        return dataList
+        return dbdatajson
         
 
 class flatToCascadedJson(object):
