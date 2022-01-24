@@ -3,6 +3,6 @@ from dbconnect import engine
 
 
 mysqltojson = MysqltoJSON(engine)
-#tablelist, tablejson = mysqltojson.tableData()
-tablesjson = mysqltojson.createDBTableJSON()
-#print(tablelist, tablejson)
+tablelist, tablejson, tablecolumnsjson = mysqltojson.tableData()
+#tablesjson = mysqltojson.createDBTableJSON()
+print(tablelist, tablejson, tablecolumnsjson)

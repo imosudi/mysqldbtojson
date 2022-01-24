@@ -29,22 +29,35 @@ class MysqltoJSON(object):
         tablesDict['password']      = engine.url.password
         tablesDict['tables']        = tableList
         databaseschemajson          = json.dumps(tablesDict, default=alchemyencoder, indent=2)
-        print(databaseschemajson)
+        #print(tableList)
+        #print(databaseschemajson)
         
         
-        for dbtable in tableList:
-            columnList = []
-            for column in inspector.get_columns(dbtable):
-                columnList.append(column['name'])
-            #columnDict = dict( table_name = columnList)
-            columnDict              = {}
-            columnDict['table']     = dbtable
-            columnDict['columns']   =  columnList
-            tablecolumnsjson = json.dumps(columnDict, default=alchemyencoder, indent=2)
-            print(tablecolumnsjson)
+        with open('columnsAll.json', 'w+') as file:
+            for dbtable in tableList:
+                columnList = []
             
+                for column in inspector.get_columns(dbtable):
+                    columnList.append(column['name'])
+                #columnDict = dict( table_name = columnList)
+                    columnsAll = json.dumps(
+                            {
+                                'table' : dbtable,
+                                'columns': columnList
+                            }, indent=2
+                    )
+                columnDict              = {}
+                columnDict['table']     = dbtable
+                columnDict['columns']   =  columnList
+                tablecolumnsjson = json.dumps(columnDict, default=alchemyencoder, indent=2)
+                #print(columnsAll)
+                file.write(columnsAll)
+                #print(tablecolumnsjson)
+        file.close()
         #print(tableList, tablesjson)
-        return tableList, databaseschemajson
+        #print(tablecolumnsjson)
+        print()
+        return tableList, databaseschemajson,columnsAll
     
     def createDBTableJSON(self):
         tableList, tablesjson = self.tableData()
