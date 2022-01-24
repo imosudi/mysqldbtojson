@@ -51,7 +51,7 @@ class MysqltoJSON(object):
                 columnDict['columns']   =  columnList
                 tablecolumnsjson = json.dumps(columnDict, default=alchemyencoder, indent=2)
                 #print(columnsAll)
-                file.write(columnsAll)
+                file.write(columnsAll) 
                 #print(tablecolumnsjson)
         file.close()
         #print(tableList, tablesjson)
