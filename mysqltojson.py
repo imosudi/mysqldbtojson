@@ -1,6 +1,11 @@
+from unicodedata import name
 from dbconnect import engine, alchemyencoder
 import json
 from sqlalchemy import inspect
+
+#dbname = engine.url.database
+
+
 
 class MysqltoJSON(object):
     def __init__(self, engine, *args):
@@ -8,17 +13,38 @@ class MysqltoJSON(object):
         self.engine = engine
         inspector = inspect(engine)
         self.inspector = inspector
+        self.dbname = str(engine.url.database)
     
     def tableData(self):
         tableList = []
         inspector = self.inspector
+        dbname = self.dbname
         for table_name in inspector.get_table_names():
             tableList.append(table_name)
+        #tablesDict = dict(dbname = tableList) #dbtables 
+        tablesDict                  = {}
+        tablesDict['database']      = dbname
+        tablesDict['drivername']    = engine.url.drivername       
+        tablesDict['host']          = engine.url.host
+        tablesDict['password']      = engine.url.password
+        tablesDict['tables']        = tableList
+        databaseschemajson          = json.dumps(tablesDict, default=alchemyencoder, indent=2)
+        print(databaseschemajson)
         
-        tablesDict = dict(dbtables = tableList) 
-        tablesjson = json.dumps(tablesDict, indent=2)
+        
+        for dbtable in tableList:
+            columnList = []
+            for column in inspector.get_columns(dbtable):
+                columnList.append(column['name'])
+            #columnDict = dict( table_name = columnList)
+            columnDict              = {}
+            columnDict['table']     = dbtable
+            columnDict['columns']   =  columnList
+            tablecolumnsjson = json.dumps(columnDict, default=alchemyencoder, indent=2)
+            print(tablecolumnsjson)
+            
         #print(tableList, tablesjson)
-        return tableList, tablesjson
+        return tableList, databaseschemajson
     
     def createDBTableJSON(self):
         tableList, tablesjson = self.tableData()
@@ -29,7 +55,7 @@ class MysqltoJSON(object):
             dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
             dataList = [row for row in dbtableData]
             #dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
-            print(dataList)
+            #print(dataList)
         return dataList
         
 
