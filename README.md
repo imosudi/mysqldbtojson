@@ -33,3 +33,7 @@ Edit app.py to further custmomize for use
 # return database schema and data json files in db_json/ :
  jsonfiles =  mysqltojson.jsonfiles()
 
+# run
+
+ python app.py  
+ 
