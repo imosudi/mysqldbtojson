@@ -64,7 +64,7 @@ class MysqltoJSON(object):
         completedbdatajson = json.dumps([dict(row) for row in completedbDataList], default=alchemyencoder, indent=2)
         return completedbdatajson
        
-    def jsonfiles(self):
+    def jsonFiles(self):
         dbschemajson = self.dbSchema()
         completedbdatajson  = self.dbData()
         pwd                 = os.path.dirname(os.path.abspath(__file__))

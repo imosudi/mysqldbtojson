@@ -17,9 +17,9 @@ dbdata2json= mysqltojson.dbData()
 ### return database schem and data in :
 ## db_json/dbname_dbschema.json
 ## db_json/dbname_completedbdata.json
-# jsonfiles =  mysqltojson.jsonfiles()
+# jsonfiles =  mysqltojson.jsonFiles()
 
-jsonfiles =  mysqltojson.jsonfiles()
+jsonfiles =  mysqltojson.jsonFiles()
 
 
 print('README.md is your friend')

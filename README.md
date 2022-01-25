@@ -31,7 +31,7 @@ Edit app.py to further custmomize for use
  dbdata2json= mysqltojson.dbData()
 
 # return database schema and data json files in db_json/ :
- jsonfiles =  mysqltojson.jsonfiles()
+ jsonfiles =  mysqltojson.jsonFiles()
 
 # run
 
