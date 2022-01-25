@@ -25,10 +25,10 @@ Edit app.py to further custmomize for use
  mysqltojson = MysqltoJSON(engine)  
 
 # return database schema:
- dbschemajson = mysqltojson.dbSchema()
+ ddbschemajson = mysqltojson.dbSchema()
 
 # return all data
- completedbdatajson = mysqltojson.dbData()
+ dbdata2json= mysqltojson.dbData()
 
 # return database schema and data json files in db_json/ :
  jsonfiles =  mysqltojson.jsonfiles()
