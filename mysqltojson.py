@@ -1,6 +1,6 @@
 from unicodedata import name
 from dbconnect import engine, alchemyencoder
-import json
+import json, os
 from sqlalchemy import inspect
 
 #dbname = engine.url.database
@@ -48,36 +48,37 @@ class MysqltoJSON(object):
     def createDBTableJSON(self):
         engine = self.engine
         tableList, tablesjson, totalschemaList = self.tableData()
-        #print(tableList, tablesjson)
         dbdataListAll = []
-        dbdataDictAll = {}
         dbdataDict = {}
-        dbblankList = []
         for dbtable in tableList :
             dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
             dbdataList = [row for row in dbtableData]
+            dbtableDataList = []
             for row in dbdataList :
                 #print( { dbtable : dict(row) }, 
                 #      '\n')
                 #print( dict(row))
-                dbblankList.append(
+                dbtableDataList.append(
                     dict(row)
-                     )            
+                     ) 
+                dbtableDataDict = {
+                dbtable : dbtableDataList
+            }
+            #print(dbtableDataDict)           
             dbdataDict[dbtable] = dbdataList
-            dbdataListAll.append(dbdataDict)
-            #dbtableName = dbtable,
-            #dbtableNameList = [dbtableName]
-            #dbdataListAll = dbdataListAll + dataList #dbtableNameList #+ dataList
-            #print(json.dumps([dict(row) for row in dataList], default=alchemyencoder, indent=2))
-        
-        print(json.dumps(dbblankList, default=alchemyencoder, indent=2))
-        dbdataDictAll['all'] = dbdataListAll
-        #dbdatajson = json.dumps([dict(row) for row in dbdataListAll], default=alchemyencoder, indent=2)
-        dbdatajson = json.dumps(dbdataDictAll, default=alchemyencoder, indent=2)
-        #print(dbdatajson)
-        
-            #dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
-            #print(dataList)
+            dbdataListAll.append(dbtableDataDict)
+        dbdatajson = json.dumps([dict(row) for row in dbdataListAll], default=alchemyencoder, indent=2)
+        pwd = os.path.dirname(os.path.abspath(__file__))
+        if not os.path.exists(f'{pwd}/db_json/') :
+            os.makedirs(f'{pwd}/db_json/')
+        with open(f'db_json/{self.dbname}.json', 'w+') as file :
+            #file.write(tableList)
+            file.write(tablesjson)
+            file.write( '{ "database_tables": ')
+            file.write(dbdatajson)
+            file.write('}')
+        file.close()
+            
         return dbdatajson
         
 
