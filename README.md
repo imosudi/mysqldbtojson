@@ -6,7 +6,7 @@
  cd mysqldbtojson
 
 # create .env file with the  target database details:    
- touch .env 
+ touch .env     
  #DB_HOST="localhost"     
  DB_HOST="xxxxxxx.xxxxxxxorIP"   
  DB_USER="dbuser"    
