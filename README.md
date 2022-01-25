@@ -20,5 +20,14 @@ python3 -m venv venv
 
 python app
 
-edit app.py to further custmomize for use   
+Edit app.py to further custmomize for use   
+
+# return database schema:
+ dbschemajson = mysqltojson.dbSchema()
+
+# return all data
+ completedbdatajson = mysqltojson.dbData()
+
+# return database schema and data json files in db_json/ :
+ jsonfiles =  mysqltojson.jsonfiles()
 

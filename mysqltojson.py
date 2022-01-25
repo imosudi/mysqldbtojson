@@ -5,279 +5,78 @@ from sqlalchemy import inspect
 
 #dbname = engine.url.database
 
-
-
 class MysqltoJSON(object):
     def __init__(self, engine, *args):
         super(MysqltoJSON, self).__init__(*args)
-        self.engine = engine
-        inspector = inspect(engine)
-        self.inspector = inspector
-        self.dbname = str(engine.url.database)
+        self.engine = engine;       inspector = inspect(engine)
+        self.inspector = inspector; self.dbname = str(engine.url.database)
+
     
     def tableData(self):
-        tableList = []
-        totalschemaList = []
-        inspector = self.inspector
-        dbname = self.dbname
-        tablesDict                  = {}
-        tablesDict['database']      = dbname
-        tablesDict['drivername']    = engine.url.drivername       
-        tablesDict['host']          = engine.url.host
-        tablesDict['password']      = engine.url.password
-        for table_name in inspector.get_table_names():
-            tableList.append(table_name)
-            #print(table_name)
-            columnList =[]
-            columnDict             = {}
-            columnDict['name']     =  table_name
-            for column in inspector.get_columns(table_name):
-                columnList.append(column['name'])
-                columnDict['columns']   =  columnList
-            
-            totalschemaList.append(columnDict)
-            ##print(columnDict)
-        #print(tableList)    
-        #tablesDict = dict(dbname = tableList) #dbtables 
+        dbtableList = [];   schemaList = [];  inspector = self.inspector;    dbname = self.dbname
+        schemasDict = {};   schemasDict['database'] = dbname
+        schemasDict['drivername']    = engine.url.drivername       
+        schemasDict['host']          = engine.url.host
+        schemasDict['password']      = engine.url.password
         
-        tablesDict['tables']        = totalschemaList
-        databaseschemajson          = json.dumps(tablesDict, default=alchemyencoder, indent=2)
-        #print(tableList, tablesjson)
-        return tableList, databaseschemajson, totalschemaList 
+        for table_name in inspector.get_table_names():
+            dbtableList.append(table_name)
+            columnList = [];    columnDict  = {};   columnDict['name']  = table_name
+            
+            for column in inspector.get_columns(table_name):
+                columnList.append(column['name']);  columnDict['columns']  =  columnList
+            
+            schemaList.append(columnDict)
+        #schemasDict = dict(dbname = dbtableList) #dbtables 
+        
+        self.dbtableList = dbtableList
+        schemasDict['tables']   = schemaList
+        dbschemajson            = json.dumps(schemasDict, default=alchemyencoder, indent=2)
+        #return dbtableList, schemaList, dbschemajson 
+        return dbschemajson
     
+
     def createDBTableJSON(self):
         engine = self.engine
-        tableList, tablesjson, totalschemaList = self.tableData()
-        dbdataListAll = []
+        #dbtableList, schemaList, tablesjson = self.tableData()
+        dbtableList = self.dbtableList
+        completedbDataList = []
         dbdataDict = {}
-        for dbtable in tableList :
-            dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
-            dbdataList = [row for row in dbtableData]
+        
+        for dbtable in dbtableList :
+            dbtableData     = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
+            dbdataList      = [row for row in dbtableData]
             dbtableDataList = []
+            
             for row in dbdataList :
                 #print( { dbtable : dict(row) }, 
                 #      '\n')
                 #print( dict(row))
-                dbtableDataList.append(
-                    dict(row)
-                     ) 
-                dbtableDataDict = {
-                dbtable : dbtableDataList
-            }
-            #print(dbtableDataDict)           
+                dbtableDataList.append(dict(row)) 
+                dbtableDataDict = {dbtable : dbtableDataList}
+                
             dbdataDict[dbtable] = dbdataList
-            dbdataListAll.append(dbtableDataDict)
-        dbdatajson = json.dumps([dict(row) for row in dbdataListAll], default=alchemyencoder, indent=2)
-        pwd = os.path.dirname(os.path.abspath(__file__))
+            completedbDataList.append(dbtableDataDict)
+        
+        completedbdatajson = json.dumps([dict(row) for row in completedbDataList], default=alchemyencoder, indent=2)
+        return completedbdatajson
+    
+
+    def jsonfiles(self):
+        dbschemajson = self.tableData()
+        completedbdatajson  = self.createDBTableJSON()
+        pwd                 = os.path.dirname(os.path.abspath(__file__))
+        
         if not os.path.exists(f'{pwd}/db_json/') :
             os.makedirs(f'{pwd}/db_json/')
-        with open(f'db_json/{self.dbname}.json', 'w+') as file :
-            #file.write(tableList)
-            file.write(tablesjson)
-            #file.write( '{ "database_tables": ')
-            file.write(dbdatajson)
-            #file.write('}')
+        
+        with open(f'db_json/{self.dbname}_dbschema.json', 'w+') as file :
+            file.write(dbschemajson)
+        file.close()
+        
+        with open(f'db_json/{self.dbname}_completedbdata.json', 'w+') as file :
+            file.write(completedbdatajson)
         file.close()
             
-        return dbdatajson
-        
-
-class flatToCascadedJson(object):
-    def __init__(self, dbtable, *args):
-        super(flatToCascadedJson, self).__init__(*args) 
-        self.dbtable =dbtable
-    
-    def reformatjson(self):
-        dbtable = self.dbtable
-        if dbtable not in ['patients', 'labtests', 'transactions', 'user']:
-            return {'response':'Not available in database'}, inspect(engine)
-        dbtableData = engine.execute('SELECT * FROM {dbtable}' .format(dbtable=dbtable))
-        dataList = json.dumps([dict(row) for row in dbtableData], default=alchemyencoder, indent=4)
-        with open(f'table_json/{dbtable}.json', 'w+') as file:
-            file.write(dataList) 
-        file.close()
-
-        if dbtable == 'patients':
-           patientList = json.loads(dataList)
-           with open(f'table_json/{dbtable}_casded.json', 'w+') as file:
-               for i in range(0, len(patientList)) :
-                   data2 = json.dumps(
-                       {
-                           'patient_row_id' :   patientList[i]['patient_id'],
-                           'patient_unique_ID': patientList[i]['patientID'],
-                           'labsessioncount' :  '',
-                           'PatientPersonalDetails' :[
-                               {
-                                   'patientSex':        patientList[i]['patientSex'],
-                                   'patientStatus':     patientList[i]['patientStatus'],
-                                   'patientType':       patientList[i]['patientType'],
-                                   'ageGrade':          patientList[i]['ageGrade'],
-                                   'patientDateofBirth':     patientList[i]['patientDateofBirth'],
-                                   'patientTitle':      patientList[i]['patientTitle'],
-                                   'patientFirstname':  patientList[i]['patientFirstname'], 
-                                   'patientLastname':   patientList[i]['patientLastname'],
-                                   'patientMiddlename': patientList[i]['patientMiddlename'],
-                                   'patientEmail':      patientList[i]['patientEmail'],
-                                   'patientAltEmail':   patientList[i]['patientAltEmail'],
-                                   'patientPhonenumber':    patientList[i]['patientPhonenumber'],
-                                   'patientAltPhonenumber': patientList[i]['patientAltPhonenumber'],
-                                   'patientwhatsappnumber': patientList[i]['patientwhatsappnumber'],
-                                   'patientAddress':    patientList[i]['patientAddress'],
-                                   'patientCity':       patientList[i]['patientCity'],
-                                   'patientState':      patientList[i]['patientState'],
-                                   'patientCountry':    patientList[i]['patientCountry'],
-                                   'patientpersonalEnroledby':  patientList[i]['patientpersonalEnroledby']
-                               }
-                           ],
-                           'PatientCorporateDetails' :[
-                               {
-                                   'patientCompanyname':     patientList[i]['patientCompanyname'],
-                                   'patientCorporateContactperson':     patientList[i]['patientCorporateContactperson'],
-                                   'patientCorporateEmail':     patientList[i]['patientCorporateEmail'],
-                                   'patientCorporatePhone':     patientList[i]['patientCorporatePhone'],
-                                   'patientCorporatewhatsappnumber':    patientList[i]['patientCorporatewhatsappnumber'],
-                                   'patientCorporateAddress':   patientList[i]['patientCorporateAddress'],
-                                   'patientCorporateCity':      patientList[i]['patientCorporateCity'],
-                                   'patientCorporateState':     patientList[i]['patientCorporateState'],
-                                   'patientCorporateCountry':   patientList[i]['patientCorporateCountry'],
-                                   'patientCorporateEnroledby': patientList[i]['patientCorporateEnroledby'],
-                                   'enrolment_Time':    patientList[i]['enrolment_Time']
-
-                                }
-                           ]
-                       },
-                       indent=2
-                   )
-                   #print(data2)
-                   file.write(data2) 
-               file.close()
-           #print(patientList)
-           return data2, dataList
-
-
-        elif dbtable == 'labtests' :
-            testList = json.loads(dataList)
-            with open(f'table_json/{dbtable}_casded.json', 'w+') as file:
-               for i in range(0, len(testList)) :
-                   data2 = json.dumps(
-                       {
-                           'test_id':       testList[i]['test_id'],
-                           'testType':      testList[i]['testType'],
-                           'testBottleType':    testList[i]['testBottleType'],
-                           'testName':       testList[i]['testName'],
-                           'testmnemonics':      testList[i]['testmnemonics'],
-                           'testDetails':        testList[i]['testDetails'],
-                           'testTAT':            testList[i]['testTAT'],
-                           'testPrice':          testList[i]['testPrice']
-                        },
-                       indent=2
-                   )
-                   #print(data2)
-                   file.write(data2) 
-               file.close()
-            return data2, dataList
-
-
-        elif  dbtable == 'transactions'  :
-            transactionList = json.loads(dataList)
-            with open(f'table_json/{dbtable}_casded.json', 'w+') as file:
-               for i in range(0, len(transactionList)) :
-                   data2 = json.dumps(
-                       {
-                           'transaction_id': 1, 
-                           'transactTime':      transactionList[i]['transactTime'],
-                           'labSessionTestDetails' : [
-                               {
-                                   'invoicemnemonics':  transactionList[i]['invoicemnemonics'],
-                                   'invoicetestname':   transactionList[i]['invoicetestname'],
-                                   'invoiceprice':      transactionList[i]['invoiceprice'], 
-                                   'invoicetat':        transactionList[i]['invoicetat']
-                               }
-                           ],
-                           'PatientDetails' : [
-                               {
-                                   'CurrentpatientID':  transactionList[i]['CurrentpatientID'], 
-                                   'fullName':          transactionList[i]['fullName'],
-                                   'sex':               transactionList[i]['sex'], 
-                                   'billto':            transactionList[i]['billto'],
-                                   'testspriority':     transactionList[i]['testspriority'],
-                                   'testscheduletype':  transactionList[i]['testscheduletype']
-                               }
-                           ],
-                           'Payment_Reference' : [
-                               {
-                                   'subtotal':          transactionList[i]['subtotal'],
-                                   'discount':          transactionList[i]['discount'],
-                                   'equalltax':         transactionList[i]['equalltax'],
-                                   'total':             transactionList[i]['total'],
-                                   'paymentmethod':     transactionList[i]['paymentmethod'],
-                                   'payment':           transactionList[i]['payment'],
-                                   'referenceOrchange': transactionList[i]['referenceOrchange'], 
-                                   'sessionconfirm':    transactionList[i]['sessionconfirm'],
-                                   'paymentconfirm':    transactionList[i]['paymentconfirm'], 
-                                   'barcode':           transactionList[i]['barcode'], 
-                                   'phlebotomy_processed':  transactionList[i]['phlebotomy_processed']
-                               }
-                           ],
-                           'PaymentPtocessor' : [
-                               {
-                                   'regtype':           transactionList[i]['regtype'],
-                                   'cashier':           transactionList[i]['cashier'], 
-                                   'paymentupdateamount':   transactionList[i][ 'paymentupdateamount'], 
-                                   'paymentupdateby':       transactionList[i]['paymentupdateby'],
-                                   'paymentupdateTime':     transactionList[i]['paymentupdateTime']
-                               }
-                           ]
-                        },
-                       indent=2
-                   )
-                   #print(data2)
-                   file.write(data2) 
-               file.close()
-               #print(transactionList[0])
-            return data2, dataList
-
-
-        elif dbtable == 'user' :
-            userList = json.loads(dataList)
-            with open(f'table_json/{dbtable}_casded.json', 'w+') as file:
-                for i in range(0, len(userList)) :
-                    data2 =json.dumps( 
-                        {
-                            'userID': userList[i]['id'],
-                            'loginDetails' :[{
-                                'username': userList[i]['email'],
-                                'password': userList[i]['password']
-                            }],
-                            'designation':  userList[i]['designation'],
-                            'userDetails' :[{
-                                'firstname' :   userList[i]['firstname'], 
-                                'lastname':     userList[i]['lastname'], 
-                                'email':        userList[i]['email'], 
-                                'phonenumber':  userList[i]['phonenumber'],
-                                'AlternatePhonenumber' : userList[i]['altnumber'],
-                                'location' :[{ 
-                                    'location':     userList[i]['location'],
-                                     'city' :       userList[i]['city'],
-                                     'state':       userList[i]['state'],
-                                     'country':     userList[i]['country'] 
-                                     }],
-                                'zip_code' : userList[i]['zip_code']
-                            }],
-                            'Analytics' :[{
-                                'last_login_at':    userList[i]['last_login_at'],
-                                'current_login_at': userList[i]['current_login_at'],
-                                'last_login_ip':    userList[i]['last_login_ip'],
-                                'current_login_ip': userList[i]['current_login_ip'],
-                                'login_count':      userList[i]['login_count'],
-                                'confirmed_at':     userList[i]['confirmed_at'],
-                                'active':           userList[i]['active']
-                            }]
-                        }, indent=2
-                    )
-                    #print(data2)
-                    file.write(data2) 
-                file.close()
-                # End for statement'
-            return data2, dataList
-        #print(userList[0])
+        return f'{pwd}/db_json/{self.dbname}_dbschema.json',\
+            f'{pwd}/db_json/{self.dbname}_completedbdata.json'
