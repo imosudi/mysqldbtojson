@@ -7,11 +7,11 @@
 
 # create .env file with the  target database details:    
 
-#DB_HOST="localhost"
-DB_HOST="xxxxxxx.xxxxxxxorIP"
-DB_USER="dbuser"
-DB_PASS="dbpassword"
-DB_NAME="dbname"
+ #DB_HOST="localhost"    
+ DB_HOST="xxxxxxx.xxxxxxxorIP"   
+ DB_USER="dbuser"    
+ DB_PASS="dbpassword"    
+ DB_NAME="dbname"    
 
 # Create Python virtual environment :   
 
@@ -21,6 +21,8 @@ python3 -m venv venv
 python app
 
 Edit app.py to further custmomize for use   
+# Create object instance    
+ mysqltojson = MysqltoJSON(engine)  
 
 # return database schema:
  dbschemajson = mysqltojson.dbSchema()
