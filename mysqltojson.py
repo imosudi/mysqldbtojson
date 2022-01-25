@@ -74,9 +74,9 @@ class MysqltoJSON(object):
         with open(f'db_json/{self.dbname}.json', 'w+') as file :
             #file.write(tableList)
             file.write(tablesjson)
-            file.write( '{ "database_tables": ')
+            #file.write( '{ "database_tables": ')
             file.write(dbdatajson)
-            file.write('}')
+            #file.write('}')
         file.close()
             
         return dbdatajson
