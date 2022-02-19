@@ -13,6 +13,7 @@ field_type = {
  7: 'TIMESTAMP',
  8: 'LONGLONG',
  9: 'INT24',
+ 
  10: 'DATE',
  11: 'TIME',
  12: 'DATETIME',
