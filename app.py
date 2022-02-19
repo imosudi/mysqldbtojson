@@ -3,6 +3,13 @@ from dbconnect import engine
 
 
 mysqltojson = MysqltoJSON(engine)
+
+
+### return database facts; viz: list of tables and diction of 
+#tablenames as keys and lists corresponding column names as values 
+dbtableList, dbtableListDict, schemaList = mysqltojson.dbfacts()
+
+
 ### return database schema:
 # ddbschemajson = mysqltojson.dbSchema()
 ddbschemajson = mysqltojson.dbSchema()
